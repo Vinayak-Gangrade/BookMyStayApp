@@ -1,19 +1,97 @@
-
 public class BookMyStayApp {
 
-    /**
-     * Main method - entry point of the Java application
-     */
+    // Abstract Room Class
+    static abstract class Room {
+        private int beds;
+        private int size;
+        private double price;
+
+        public Room(int beds, int size, double price) {
+            this.beds = beds;
+            this.size = size;
+            this.price = price;
+        }
+
+        public int getBeds() {
+            return beds;
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public double getPrice() {
+            return price;
+        }
+
+        public abstract String getRoomType();
+
+        public void displayRoomDetails() {
+            System.out.println("Room Type: " + getRoomType());
+            System.out.println("Beds: " + beds);
+            System.out.println("Size: " + size + " sq.ft");
+            System.out.println("Price per night: ₹" + price);
+        }
+    }
+
+    // Single Room Class
+    static class SingleRoom extends Room {
+        public SingleRoom() {
+            super(1, 200, 1500);
+        }
+
+        public String getRoomType() {
+            return "Single Room";
+        }
+    }
+
+    // Double Room Class
+    static class DoubleRoom extends Room {
+        public DoubleRoom() {
+            super(2, 350, 2500);
+        }
+
+        public String getRoomType() {
+            return "Double Room";
+        }
+    }
+
+    // Suite Room Class
+    static class SuiteRoom extends Room {
+        public SuiteRoom() {
+            super(3, 600, 5000);
+        }
+
+        public String getRoomType() {
+            return "Suite Room";
+        }
+    }
+
+    // Main Method
     public static void main(String[] args) {
 
-        // Display welcome message
-        System.out.println("Welcome to Hotel Booking System");
+        Room single = new SingleRoom();
+        Room doubleRoom = new DoubleRoom();
+        Room suite = new SuiteRoom();
 
-        // Display application name and version
-        System.out.println("Application Name: Book My Stay");
-        System.out.println("Version: 1.0");
+        // Static availability
+        int singleAvailable = 5;
+        int doubleAvailable = 3;
+        int suiteAvailable = 2;
 
-        // End message
-        System.out.println("Application Started Successfully");
+        System.out.println("===== Welcome to BookMyStay =====\n");
+
+        single.displayRoomDetails();
+        System.out.println("Available Rooms: " + singleAvailable);
+        System.out.println("---------------------------");
+
+        doubleRoom.displayRoomDetails();
+        System.out.println("Available Rooms: " + doubleAvailable);
+        System.out.println("---------------------------");
+
+        suite.displayRoomDetails();
+        System.out.println("Available Rooms: " + suiteAvailable);
+
+        System.out.println("\nThank you for using BookMyStay!");
     }
 }
