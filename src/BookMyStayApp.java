@@ -1,97 +1,63 @@
+import java.util.HashMap;
+
 public class BookMyStayApp {
 
-    // Abstract Room Class
-    static abstract class Room {
-        private int beds;
-        private int size;
-        private double price;
+    // Inner class for Inventory Management
+    static class RoomInventory {
 
-        public Room(int beds, int size, double price) {
-            this.beds = beds;
-            this.size = size;
-            this.price = price;
+        private HashMap<String, Integer> inventory;
+
+        // Constructor initializes room availability
+        public RoomInventory() {
+            inventory = new HashMap<>();
+
+            inventory.put("Single Room", 5);
+            inventory.put("Double Room", 3);
+            inventory.put("Suite Room", 2);
         }
 
-        public int getBeds() {
-            return beds;
+        // Get availability
+        public int getAvailability(String roomType) {
+            return inventory.getOrDefault(roomType, 0);
         }
 
-        public int getSize() {
-            return size;
+        // Update availability
+        public void updateAvailability(String roomType, int count) {
+            inventory.put(roomType, count);
         }
 
-        public double getPrice() {
-            return price;
-        }
+        // Display inventory
+        public void displayInventory() {
+            System.out.println("===== Room Inventory =====");
 
-        public abstract String getRoomType();
-
-        public void displayRoomDetails() {
-            System.out.println("Room Type: " + getRoomType());
-            System.out.println("Beds: " + beds);
-            System.out.println("Size: " + size + " sq.ft");
-            System.out.println("Price per night: ₹" + price);
-        }
-    }
-
-    // Single Room Class
-    static class SingleRoom extends Room {
-        public SingleRoom() {
-            super(1, 200, 1500);
-        }
-
-        public String getRoomType() {
-            return "Single Room";
+            for (String roomType : inventory.keySet()) {
+                System.out.println(roomType + " : " + inventory.get(roomType));
+            }
         }
     }
 
-    // Double Room Class
-    static class DoubleRoom extends Room {
-        public DoubleRoom() {
-            super(2, 350, 2500);
-        }
-
-        public String getRoomType() {
-            return "Double Room";
-        }
-    }
-
-    // Suite Room Class
-    static class SuiteRoom extends Room {
-        public SuiteRoom() {
-            super(3, 600, 5000);
-        }
-
-        public String getRoomType() {
-            return "Suite Room";
-        }
-    }
-
-    // Main Method
+    // Main method
     public static void main(String[] args) {
 
-        Room single = new SingleRoom();
-        Room doubleRoom = new DoubleRoom();
-        Room suite = new SuiteRoom();
+        // Initialize inventory
+        RoomInventory inventory = new RoomInventory();
 
-        // Static availability
-        int singleAvailable = 5;
-        int doubleAvailable = 3;
-        int suiteAvailable = 2;
+        // Display current inventory
+        inventory.displayInventory();
 
-        System.out.println("===== Welcome to BookMyStay =====\n");
+        System.out.println();
 
-        single.displayRoomDetails();
-        System.out.println("Available Rooms: " + singleAvailable);
-        System.out.println("---------------------------");
+        // Check availability
+        System.out.println("Single Room Available: "
+                + inventory.getAvailability("Single Room"));
 
-        doubleRoom.displayRoomDetails();
-        System.out.println("Available Rooms: " + doubleAvailable);
-        System.out.println("---------------------------");
+        System.out.println();
 
-        suite.displayRoomDetails();
-        System.out.println("Available Rooms: " + suiteAvailable);
+        // Update inventory
+        System.out.println("Updating Single Room availability...\n");
+        inventory.updateAvailability("Single Room", 4);
 
-        System.out.println("\nThank you for using BookMyStay!");
+        // Display updated inventory
+        inventory.displayInventory();
     }
 }
