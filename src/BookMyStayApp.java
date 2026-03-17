@@ -1,97 +1,52 @@
 import java.util.*;
 
-public class UseCase10BookingCancellation {
+public class UseCase11ConcurrentBookingSimulation {
+
+    // Shared inventory
+    static Map<String, Integer> rooms = new HashMap<>();
+
+    // Lock object for synchronization
+    static Object lock = new Object();
 
     public static void main(String[] args) {
 
-        Scanner sc = new Scanner(System.in);
-
-        // Inventory
-        Map<String, Integer> rooms = new HashMap<>();
-        rooms.put("Standard", 2);
-        rooms.put("Deluxe", 2);
+        // Initialize inventory
+        rooms.put("Standard", 1);
+        rooms.put("Deluxe", 1);
         rooms.put("Suite", 1);
 
-        // Booking storage (reservationId -> roomType)
-        Map<String, String> bookings = new HashMap<>();
+        // Simulate multiple guest booking requests (threads)
+        Thread t1 = new Thread(() -> bookRoom("Guest1", "Standard"));
+        Thread t2 = new Thread(() -> bookRoom("Guest2", "Standard"));
+        Thread t3 = new Thread(() -> bookRoom("Guest3", "Deluxe"));
 
-        // Stack for rollback (released room IDs)
-        Stack<String> rollbackStack = new Stack<>();
+        // Start threads simultaneously
+        t1.start();
+        t2.start();
+        t3.start();
+    }
 
-        while (true) {
-            System.out.println("\n===== MENU =====");
-            System.out.println("1. Book Room");
-            System.out.println("2. Cancel Booking");
-            System.out.println("3. View Bookings");
-            System.out.println("4. Exit");
+    // Booking method (shared resource access)
+    public static void bookRoom(String guestName, String roomType) {
 
-            int choice = sc.nextInt();
-            sc.nextLine(); // clear buffer
+        System.out.println(guestName + " trying to book " + roomType);
 
-            switch (choice) {
+        // 🔴 Critical Section (only one thread at a time)
+        synchronized (lock) {
 
-                case 1:
-                    System.out.print("Enter Reservation ID: ");
-                    String id = sc.nextLine();
+            if (!rooms.containsKey(roomType)) {
+                System.out.println("Invalid room type for " + guestName);
+                return;
+            }
 
-                    System.out.print("Enter Room Type (Standard/Deluxe/Suite): ");
-                    String type = sc.nextLine();
+            if (rooms.get(roomType) > 0) {
+                System.out.println(guestName + " booking confirmed for " + roomType);
 
-                    // Validation
-                    if (!rooms.containsKey(type)) {
-                        System.out.println("Invalid room type.");
-                        break;
-                    }
+                // Update inventory safely
+                rooms.put(roomType, rooms.get(roomType) - 1);
 
-                    if (rooms.get(type) <= 0) {
-                        System.out.println("No rooms available.");
-                        break;
-                    }
-
-                    // Allocate room
-                    bookings.put(id, type);
-                    rooms.put(type, rooms.get(type) - 1);
-
-                    System.out.println("Booking Confirmed.");
-                    break;
-
-                case 2:
-                    System.out.print("Enter Reservation ID to cancel: ");
-                    String cancelId = sc.nextLine();
-
-                    // Validate existence
-                    if (!bookings.containsKey(cancelId)) {
-                        System.out.println("Invalid or already cancelled booking.");
-                        break;
-                    }
-
-                    // Get room type
-                    String bookedType = bookings.get(cancelId);
-
-                    // Push to rollback stack (simulate room release)
-                    rollbackStack.push(cancelId);
-
-                    // Restore inventory
-                    rooms.put(bookedType, rooms.get(bookedType) + 1);
-
-                    // Remove booking
-                    bookings.remove(cancelId);
-
-                    System.out.println("Booking cancelled successfully.");
-                    break;
-
-                case 3:
-                    System.out.println("\nCurrent Bookings: " + bookings);
-                    System.out.println("Available Rooms: " + rooms);
-                    System.out.println("Rollback Stack: " + rollbackStack);
-                    break;
-
-                case 4:
-                    System.out.println("Exiting...");
-                    return;
-
-                default:
-                    System.out.println("Invalid choice.");
+            } else {
+                System.out.println("No rooms available for " + guestName);
             }
         }
     }
