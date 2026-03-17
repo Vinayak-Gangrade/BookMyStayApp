@@ -1,68 +1,97 @@
 import java.util.*;
 
-// Custom Exception
-class InvalidBookingException extends Exception {
-    public InvalidBookingException(String message) {
-        super(message);
-    }
-}
-
-public class UseCase9ErrorHandlingValidation {
+public class UseCase10BookingCancellation {
 
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
 
-        // Room inventory
+        // Inventory
         Map<String, Integer> rooms = new HashMap<>();
         rooms.put("Standard", 2);
         rooms.put("Deluxe", 2);
         rooms.put("Suite", 1);
 
+        // Booking storage (reservationId -> roomType)
+        Map<String, String> bookings = new HashMap<>();
+
+        // Stack for rollback (released room IDs)
+        Stack<String> rollbackStack = new Stack<>();
+
         while (true) {
-            try {
-                System.out.println("\n===== BOOKING MENU =====");
-                System.out.println("Available Rooms: " + rooms);
+            System.out.println("\n===== MENU =====");
+            System.out.println("1. Book Room");
+            System.out.println("2. Cancel Booking");
+            System.out.println("3. View Bookings");
+            System.out.println("4. Exit");
 
-                System.out.print("Enter Guest Name: ");
-                String name = sc.nextLine();
+            int choice = sc.nextInt();
+            sc.nextLine(); // clear buffer
 
-                System.out.print("Enter Room Type (Standard/Deluxe/Suite): ");
-                String roomType = sc.nextLine();
+            switch (choice) {
 
-                // 🔴 VALIDATION 1: Empty input
-                if (name.isEmpty()) {
-                    throw new InvalidBookingException("Guest name cannot be empty.");
-                }
+                case 1:
+                    System.out.print("Enter Reservation ID: ");
+                    String id = sc.nextLine();
 
-                // 🔴 VALIDATION 2: Invalid room type
-                if (!rooms.containsKey(roomType)) {
-                    throw new InvalidBookingException("Invalid room type selected.");
-                }
+                    System.out.print("Enter Room Type (Standard/Deluxe/Suite): ");
+                    String type = sc.nextLine();
 
-                // 🔴 VALIDATION 3: Availability check
-                if (rooms.get(roomType) <= 0) {
-                    throw new InvalidBookingException("No rooms available for " + roomType);
-                }
+                    // Validation
+                    if (!rooms.containsKey(type)) {
+                        System.out.println("Invalid room type.");
+                        break;
+                    }
 
-                // ✅ If all validations pass → confirm booking
-                rooms.put(roomType, rooms.get(roomType) - 1);
+                    if (rooms.get(type) <= 0) {
+                        System.out.println("No rooms available.");
+                        break;
+                    }
 
-                System.out.println("Booking successful for " + name + " in " + roomType);
+                    // Allocate room
+                    bookings.put(id, type);
+                    rooms.put(type, rooms.get(type) - 1);
 
-            } catch (InvalidBookingException e) {
-                // Graceful error handling
-                System.out.println("Booking Failed: " + e.getMessage());
-            } catch (Exception e) {
-                System.out.println("Unexpected Error occurred.");
-            }
+                    System.out.println("Booking Confirmed.");
+                    break;
 
-            System.out.print("\nDo you want to continue? (yes/no): ");
-            String choice = sc.nextLine();
+                case 2:
+                    System.out.print("Enter Reservation ID to cancel: ");
+                    String cancelId = sc.nextLine();
 
-            if (choice.equalsIgnoreCase("no")) {
-                System.out.println("Exiting system...");
-                break;
+                    // Validate existence
+                    if (!bookings.containsKey(cancelId)) {
+                        System.out.println("Invalid or already cancelled booking.");
+                        break;
+                    }
+
+                    // Get room type
+                    String bookedType = bookings.get(cancelId);
+
+                    // Push to rollback stack (simulate room release)
+                    rollbackStack.push(cancelId);
+
+                    // Restore inventory
+                    rooms.put(bookedType, rooms.get(bookedType) + 1);
+
+                    // Remove booking
+                    bookings.remove(cancelId);
+
+                    System.out.println("Booking cancelled successfully.");
+                    break;
+
+                case 3:
+                    System.out.println("\nCurrent Bookings: " + bookings);
+                    System.out.println("Available Rooms: " + rooms);
+                    System.out.println("Rollback Stack: " + rollbackStack);
+                    break;
+
+                case 4:
+                    System.out.println("Exiting...");
+                    return;
+
+                default:
+                    System.out.println("Invalid choice.");
             }
         }
     }
