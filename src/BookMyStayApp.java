@@ -1,37 +1,45 @@
-import java.util.HashMap;
+import java.util.Queue;
+import java.util.LinkedList;
 
 public class BookMyStayApp {
 
-    // Inner class for Inventory Management
-    static class RoomInventory {
+    // Reservation class representing booking request
+    static class Reservation {
 
-        private HashMap<String, Integer> inventory;
+        String guestName;
+        String roomType;
 
-        // Constructor initializes room availability
-        public RoomInventory() {
-            inventory = new HashMap<>();
-
-            inventory.put("Single Room", 5);
-            inventory.put("Double Room", 3);
-            inventory.put("Suite Room", 2);
+        Reservation(String guestName, String roomType) {
+            this.guestName = guestName;
+            this.roomType = roomType;
         }
 
-        // Get availability
-        public int getAvailability(String roomType) {
-            return inventory.getOrDefault(roomType, 0);
+        void displayRequest() {
+            System.out.println("Guest: " + guestName + " requested " + roomType);
+        }
+    }
+
+    // Booking Request Queue
+    static class BookingRequestQueue {
+
+        private Queue<Reservation> queue;
+
+        BookingRequestQueue() {
+            queue = new LinkedList<>();
         }
 
-        // Update availability
-        public void updateAvailability(String roomType, int count) {
-            inventory.put(roomType, count);
+        // Add booking request
+        public void addRequest(Reservation reservation) {
+            queue.add(reservation);
+            System.out.println("Booking request added for " + reservation.guestName);
         }
 
-        // Display inventory
-        public void displayInventory() {
-            System.out.println("===== Room Inventory =====");
+        // Display queued requests
+        public void showRequests() {
+            System.out.println("\n===== Booking Request Queue =====");
 
-            for (String roomType : inventory.keySet()) {
-                System.out.println(roomType + " : " + inventory.get(roomType));
+            for (Reservation r : queue) {
+                r.displayRequest();
             }
         }
     }
@@ -39,25 +47,19 @@ public class BookMyStayApp {
     // Main method
     public static void main(String[] args) {
 
-        // Initialize inventory
-        RoomInventory inventory = new RoomInventory();
+        BookingRequestQueue bookingQueue = new BookingRequestQueue();
 
-        // Display current inventory
-        inventory.displayInventory();
+        // Guests submitting booking requests
+        Reservation r1 = new Reservation("Vinayak", "Single Room");
+        Reservation r2 = new Reservation("Rahul", "Double Room");
+        Reservation r3 = new Reservation("Anita", "Suite Room");
 
-        System.out.println();
+        // Add requests to queue
+        bookingQueue.addRequest(r1);
+        bookingQueue.addRequest(r2);
+        bookingQueue.addRequest(r3);
 
-        // Check availability
-        System.out.println("Single Room Available: "
-                + inventory.getAvailability("Single Room"));
-
-        System.out.println();
-
-        // Update inventory
-        System.out.println("Updating Single Room availability...\n");
-        inventory.updateAvailability("Single Room", 4);
-
-        // Display updated inventory
-        inventory.displayInventory();
+        // Show queued booking requests
+        bookingQueue.showRequests();
     }
 }
