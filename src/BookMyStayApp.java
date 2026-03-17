@@ -1,52 +1,126 @@
+import java.io.*;
 import java.util.*;
 
-public class UseCase11ConcurrentBookingSimulation {
-
-    // Shared inventory
-    static Map<String, Integer> rooms = new HashMap<>();
-
-    // Lock object for synchronization
-    static Object lock = new Object();
+public class UseCase12DataPersistenceRecovery {
 
     public static void main(String[] args) {
 
-        // Initialize inventory
-        rooms.put("Standard", 1);
-        rooms.put("Deluxe", 1);
+        Scanner sc = new Scanner(System.in);
+
+        // File name
+        String fileName = "data.txt";
+
+        // Inventory
+        Map<String, Integer> rooms = new HashMap<>();
+        rooms.put("Standard", 2);
+        rooms.put("Deluxe", 2);
         rooms.put("Suite", 1);
 
-        // Simulate multiple guest booking requests (threads)
-        Thread t1 = new Thread(() -> bookRoom("Guest1", "Standard"));
-        Thread t2 = new Thread(() -> bookRoom("Guest2", "Standard"));
-        Thread t3 = new Thread(() -> bookRoom("Guest3", "Deluxe"));
+        // Booking history
+        List<String> bookings = new ArrayList<>();
 
-        // Start threads simultaneously
-        t1.start();
-        t2.start();
-        t3.start();
-    }
+        // 🔵 LOAD DATA (Recovery)
+        try {
+            File file = new File(fileName);
 
-    // Booking method (shared resource access)
-    public static void bookRoom(String guestName, String roomType) {
+            if (file.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(file));
 
-        System.out.println(guestName + " trying to book " + roomType);
+                // Load rooms
+                rooms.clear();
+                int roomCount = Integer.parseInt(br.readLine());
 
-        // 🔴 Critical Section (only one thread at a time)
-        synchronized (lock) {
+                for (int i = 0; i < roomCount; i++) {
+                    String[] parts = br.readLine().split(",");
+                    rooms.put(parts[0], Integer.parseInt(parts[1]));
+                }
 
-            if (!rooms.containsKey(roomType)) {
-                System.out.println("Invalid room type for " + guestName);
-                return;
+                // Load bookings
+                int bookingCount = Integer.parseInt(br.readLine());
+
+                for (int i = 0; i < bookingCount; i++) {
+                    bookings.add(br.readLine());
+                }
+
+                br.close();
+                System.out.println("Data loaded successfully (Recovery done).");
             }
 
-            if (rooms.get(roomType) > 0) {
-                System.out.println(guestName + " booking confirmed for " + roomType);
+        } catch (Exception e) {
+            System.out.println("Error loading data. Starting fresh.");
+        }
 
-                // Update inventory safely
-                rooms.put(roomType, rooms.get(roomType) - 1);
+        while (true) {
+            System.out.println("\n===== MENU =====");
+            System.out.println("1. Book Room");
+            System.out.println("2. View Bookings");
+            System.out.println("3. Exit (Save Data)");
 
-            } else {
-                System.out.println("No rooms available for " + guestName);
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+
+                case 1:
+                    System.out.print("Enter Reservation ID: ");
+                    String id = sc.nextLine();
+
+                    System.out.print("Enter Room Type (Standard/Deluxe/Suite): ");
+                    String type = sc.nextLine();
+
+                    if (!rooms.containsKey(type)) {
+                        System.out.println("Invalid room type.");
+                        break;
+                    }
+
+                    if (rooms.get(type) <= 0) {
+                        System.out.println("No rooms available.");
+                        break;
+                    }
+
+                    // Book
+                    rooms.put(type, rooms.get(type) - 1);
+                    bookings.add(id + " - " + type);
+
+                    System.out.println("Booking successful.");
+                    break;
+
+                case 2:
+                    System.out.println("\nBookings:");
+                    for (String b : bookings) {
+                        System.out.println(b);
+                    }
+                    break;
+
+                case 3:
+                    // 🔵 SAVE DATA (Persistence)
+                    try {
+                        BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
+
+                        // Save rooms
+                        bw.write(rooms.size() + "\n");
+                        for (String key : rooms.keySet()) {
+                            bw.write(key + "," + rooms.get(key) + "\n");
+                        }
+
+                        // Save bookings
+                        bw.write(bookings.size() + "\n");
+                        for (String b : bookings) {
+                            bw.write(b + "\n");
+                        }
+
+                        bw.close();
+                        System.out.println("Data saved successfully.");
+
+                    } catch (Exception e) {
+                        System.out.println("Error saving data.");
+                    }
+
+                    System.out.println("Exiting...");
+                    return;
+
+                default:
+                    System.out.println("Invalid choice.");
             }
         }
     }
