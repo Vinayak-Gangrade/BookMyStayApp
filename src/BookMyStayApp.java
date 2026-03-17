@@ -1,88 +1,68 @@
 import java.util.*;
 
-public class UseCase8BookingHistoryReport {
+// Custom Exception
+class InvalidBookingException extends Exception {
+    public InvalidBookingException(String message) {
+        super(message);
+    }
+}
+
+public class UseCase9ErrorHandlingValidation {
 
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
 
-        // List to store booking history (in insertion order)
-        List<String> bookingHistory = new ArrayList<>();
+        // Room inventory
+        Map<String, Integer> rooms = new HashMap<>();
+        rooms.put("Standard", 2);
+        rooms.put("Deluxe", 2);
+        rooms.put("Suite", 1);
 
         while (true) {
-            System.out.println("\n===== BOOKING SYSTEM =====");
-            System.out.println("1. Confirm Booking");
-            System.out.println("2. View Booking History");
-            System.out.println("3. Generate Report");
-            System.out.println("4. Exit");
+            try {
+                System.out.println("\n===== BOOKING MENU =====");
+                System.out.println("Available Rooms: " + rooms);
 
-            int choice = sc.nextInt();
-            sc.nextLine(); // consume newline
+                System.out.print("Enter Guest Name: ");
+                String name = sc.nextLine();
 
-            switch (choice) {
+                System.out.print("Enter Room Type (Standard/Deluxe/Suite): ");
+                String roomType = sc.nextLine();
 
-                case 1:
-                    // Simulate booking confirmation
-                    System.out.print("Enter Reservation ID: ");
-                    String id = sc.nextLine();
+                // 🔴 VALIDATION 1: Empty input
+                if (name.isEmpty()) {
+                    throw new InvalidBookingException("Guest name cannot be empty.");
+                }
 
-                    System.out.print("Enter Guest Name: ");
-                    String name = sc.nextLine();
+                // 🔴 VALIDATION 2: Invalid room type
+                if (!rooms.containsKey(roomType)) {
+                    throw new InvalidBookingException("Invalid room type selected.");
+                }
 
-                    System.out.print("Enter Room Type: ");
-                    String room = sc.nextLine();
+                // 🔴 VALIDATION 3: Availability check
+                if (rooms.get(roomType) <= 0) {
+                    throw new InvalidBookingException("No rooms available for " + roomType);
+                }
 
-                    String booking = "ID: " + id + ", Name: " + name + ", Room: " + room;
+                // ✅ If all validations pass → confirm booking
+                rooms.put(roomType, rooms.get(roomType) - 1);
 
-                    // Add to history
-                    bookingHistory.add(booking);
+                System.out.println("Booking successful for " + name + " in " + roomType);
 
-                    System.out.println("Booking Confirmed and Stored.");
-                    break;
+            } catch (InvalidBookingException e) {
+                // Graceful error handling
+                System.out.println("Booking Failed: " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("Unexpected Error occurred.");
+            }
 
-                case 2:
-                    // View history
-                    System.out.println("\n===== BOOKING HISTORY =====");
+            System.out.print("\nDo you want to continue? (yes/no): ");
+            String choice = sc.nextLine();
 
-                    if (bookingHistory.isEmpty()) {
-                        System.out.println("No bookings found.");
-                    } else {
-                        for (String b : bookingHistory) {
-                            System.out.println(b);
-                        }
-                    }
-                    break;
-
-                case 3:
-                    // Generate simple report
-                    System.out.println("\n===== BOOKING REPORT =====");
-
-                    int totalBookings = bookingHistory.size();
-
-                    System.out.println("Total Bookings: " + totalBookings);
-
-                    // Count room types
-                    Map<String, Integer> roomCount = new HashMap<>();
-
-                    for (String b : bookingHistory) {
-                        String roomType = b.split("Room: ")[1];
-
-                        roomCount.put(roomType, roomCount.getOrDefault(roomType, 0) + 1);
-                    }
-
-                    System.out.println("Room Type Distribution:");
-                    for (String key : roomCount.keySet()) {
-                        System.out.println(key + ": " + roomCount.get(key));
-                    }
-
-                    break;
-
-                case 4:
-                    System.out.println("Exiting...");
-                    return;
-
-                default:
-                    System.out.println("Invalid choice.");
+            if (choice.equalsIgnoreCase("no")) {
+                System.out.println("Exiting system...");
+                break;
             }
         }
     }
